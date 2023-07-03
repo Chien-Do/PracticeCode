@@ -56,6 +56,11 @@ namespace CoffeeShopSample.Logic
             return _context.CoffeeTypes.Where(ct => ct.Name == country);
 
         }
+        public IEnumerable<CoffeeType> GetVietnameseCoffeeTypesNew()
+        {
+            return GetCoffeeTypesByCountry("Vietnam");
+
+        }
         //GetAmericanCoffeePrice =>  GetFirstAmericaCoffeePriceAsync
         public async Task<decimal> GetFirstAmericaCoffeePriceAsync(CancellationToken token)
         {
