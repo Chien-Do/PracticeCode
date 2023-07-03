@@ -51,15 +51,15 @@ namespace CoffeeShopSample.Logic
         #endregion
 
         #region After Optimization
-        public IEnumerable<CoffeeType> GetCoffeeTypesByCountry(string country)
+        public IQueryable<CoffeeType> GetCoffeeTypesByCountry(string country)
         {
             return _context.CoffeeTypes.Where(ct => ct.Name == country);
 
         }
         //GetAmericanCoffeePrice =>  GetFirstAmericaCoffeePriceAsync
-        public async Task<decimal> GetFirstAmericaCoffeePriceAsync()
+        public async Task<decimal> GetFirstAmericaCoffeePriceAsync(CancellationToken token)
         {
-            var firstAmericaCoffee = (await _context.CoffeeTypes.FirstOrDefaultAsync(r => r.CountryOfOrigin == "America"))?.Price;
+            var firstAmericaCoffee = (await GetCoffeeTypesByCountry("America").FirstOrDefaultAsync(token))?.Price;
 
             decimal result = firstAmericaCoffee.HasValue ? firstAmericaCoffee.Value : default;
 
@@ -82,8 +82,13 @@ namespace CoffeeShopSample.Logic
             if (coffeePreference != null)
             {
                 coffeePreference.SearchCount++;
-                await _context.SaveChangesAsync(token);
             }
+            else
+            {
+                 _context.CoffeePreferenceNews.Add( new CoffeePreferenceNew { Country = country});
+            }
+
+            await _context.SaveChangesAsync(token);
 
         }
 
