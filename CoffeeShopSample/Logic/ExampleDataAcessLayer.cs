@@ -54,35 +54,29 @@ namespace CoffeeShopSample.Logic
         public IQueryable<CoffeeType> GetCoffeeTypesByCountry(string country)
         {
             return _context.CoffeeTypes.Where(ct => ct.Name == country);
-
         }
-        public IEnumerable<CoffeeType> GetVietnameseCoffeeTypesNew()
+
+        public async Task<IEnumerable<CoffeeType>> GetVietnameseCoffeeTypesAsync()
         {
-            return GetCoffeeTypesByCountry("Vietnam");
-
+            return await GetCoffeeTypesByCountry("Vietnam").ToListAsync();
         }
-        //GetAmericanCoffeePrice =>  GetFirstAmericaCoffeePriceAsync
-        public async Task<decimal> GetFirstAmericaCoffeePriceAsync(CancellationToken token)
+
+        public async Task<decimal?> GetFirstAmericaCoffeePriceAsync(CancellationToken token)
         {
-            var firstAmericaCoffee = (await GetCoffeeTypesByCountry("America").FirstOrDefaultAsync(token))?.Price;
-
-            decimal result = firstAmericaCoffee.HasValue ? firstAmericaCoffee.Value : default;
-
-            return result;
-
+            var firstAmericaCoffee = await GetCoffeeTypesByCountry("America").Select(ct => ct.Price).FirstOrDefaultAsync(token);
+            return firstAmericaCoffee;
         }
-        //SearchAustralianCoffeeTypes =>  SearchCoffeeTypesByCountryAsync
+
         public async Task<IEnumerable<CoffeeType>> SearchCoffeeTypesByCountryAsync(string country, CancellationToken token)
         {
-            var types = await _context.CoffeeTypes.Where(r => r.CountryOfOrigin == country).ToListAsync(token);
-            await InCreaseSearhCountAsync(country, token);
-
+            var types = await _context.CoffeeTypes.Where(ct => ct.CountryOfOrigin == country).ToListAsync(token);
+            await IncreaseSearchCountAsync(country, token);
             return types;
         }
 
-        private async Task InCreaseSearhCountAsync(string country, CancellationToken token)
+        private async Task IncreaseSearchCountAsync(string country, CancellationToken token)
         {
-            var coffeePreference = await _context.CoffeePreferenceNews.FirstOrDefaultAsync(r => r.Country == country, token);
+            var coffeePreference = await _context.CoffeePreferenceNews.FirstOrDefaultAsync(cp => cp.Country == country, token);
 
             if (coffeePreference != null)
             {
@@ -90,11 +84,10 @@ namespace CoffeeShopSample.Logic
             }
             else
             {
-                 _context.CoffeePreferenceNews.Add( new CoffeePreferenceNew { Country = country});
+                _context.CoffeePreferenceNews.Add(new CoffeePreferenceNew { Country = country });
             }
 
             await _context.SaveChangesAsync(token);
-
         }
 
         public async Task IncreasePricesAsync(IEnumerable<CoffeeType> types, double percentage, CancellationToken token)
