@@ -4,12 +4,12 @@
 
 +Coffee Preferences
  -code smell:
- + AustralianCoffeeSearch variable fix for Australia only
+ + AustralianCoffeeSearch variable fixed for Australia only. If we have over a hundred country, code will be duplicated.
  
  -suggestion:
- + Should store 1 count variable
- + Should have 1 more field for Country
- + Every time search update by country and increase count
+ + Have 1 field to Count search
+ + Have 1 field to classify country
+ + When search, based country being used, will update count respectively.
 
 +DataAcessLayer 
  1. GetAmericanCoffeePrice: 
