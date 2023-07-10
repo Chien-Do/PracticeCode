@@ -1,4 +1,5 @@
 ﻿using System.Data.Entity;
+using System.Linq.Expressions;
 
 namespace CoffeeShopSample.Logic
 {
@@ -36,7 +37,7 @@ namespace CoffeeShopSample.Logic
 
         private IEnumerable<CoffeeType> GetAllCofeeTypes()
         {
-            return _context.CoffeeTypes.AsNoTracking().ToList();
+            return _context.CoffeeTypes.ToList();
         }
         public void IncreasePrices(IEnumerable<CoffeeType> types, double percentage)
         {
@@ -51,25 +52,25 @@ namespace CoffeeShopSample.Logic
         #endregion
 
         #region After Optimization
-        public IQueryable<CoffeeType> GetCoffeeTypesByCountry(string country)
+        public IQueryable<CoffeeType> GetCoffeeTypesByCountry(Expression<Func<CoffeeType, bool>> predicate)
         {
-            return _context.CoffeeTypes.Where(ct => ct.Name == country);
+            return _context.CoffeeTypes.Where(predicate);
         }
 
         public async Task<IEnumerable<CoffeeType>> GetVietnameseCoffeeTypesAsync()
         {
-            return await GetCoffeeTypesByCountry("Vietnam").ToListAsync();
+            return await GetCoffeeTypesByCountry(r=> r.CountryOfOrigin == "Vietnam").ToListAsync();
         }
 
         public async Task<decimal?> GetFirstAmericaCoffeePriceAsync(CancellationToken token)
         {
-            var firstAmericaCoffee = await GetCoffeeTypesByCountry("America").Select(ct => ct.Price).FirstOrDefaultAsync(token);
+            var firstAmericaCoffee = await GetCoffeeTypesByCountry(r => r.CountryOfOrigin == "America").Select(ct => ct.Price).FirstOrDefaultAsync(token);
             return firstAmericaCoffee;
         }
 
         public async Task<IEnumerable<CoffeeType>> SearchCoffeeTypesByCountryAsync(string country, CancellationToken token)
         {
-            var types = await _context.CoffeeTypes.Where(ct => ct.CountryOfOrigin == country).ToListAsync(token);
+            var types = await _context.CoffeeTypes.Where(ct => ct.CountryOfOrigin == country).AsNoTracking().ToListAsync(token);
             await IncreaseSearchCountAsync(country, token);
             return types;
         }
